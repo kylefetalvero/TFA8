@@ -1,26 +1,37 @@
-
 <?php
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProfileController;
 
+// Public pages
 Route::get('/', [PageController::class, 'index']);
 Route::get('/about', [PageController::class, 'about']);
 
-// Customer routes
-Route::get('/customers', [CustomerController::class, 'index']);
-Route::get('/customers/create', [CustomerController::class, 'create']);
-Route::post('/customers', [CustomerController::class, 'store']);
-Route::get('/customers/{id}/edit', [CustomerController::class, 'edit']);
-Route::put('/customers/{id}', [CustomerController::class, 'update']);
-Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
+// Dashboard - authenticated users only
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware('auth')->name('dashboard');
 
-// User routes
-Route::get('/users', [UserController::class, 'index']);
-Route::get('/users/create', [UserController::class, 'create']);
-Route::post('/users', [UserController::class, 'store']);
-Route::get('/users/{id}/edit', [UserController::class, 'edit']);
-Route::put('/users/{id}', [UserController::class, 'update']);
-Route::delete('/users/{id}', [UserController::class, 'destroy']);
+// POS account management - authenticated users only
+Route::middleware('auth')->group(function () {
+
+    Route::resource('customers', CustomerController::class);
+
+    Route::resource('users', UserController::class);
+
+    // Profile management
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
+});
+
+// Breeze authentication routes
+require __DIR__.'/auth.php';

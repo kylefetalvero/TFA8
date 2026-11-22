@@ -58,23 +58,27 @@ class UserController extends Controller
             ->with('success', 'User created successfully!');
     }
 
-    // Show the edit user form
-    public function edit($id)
+    // Display a specific user
+    public function show(User $user)
     {
-        $user = User::findOrFail($id);
+        return view('users.show', [
+            'user' => $user
+        ]);
+    }
 
+    // Show the edit user form
+    public function edit(User $user)
+    {
         return view('users.edit', [
             'user' => $user
         ]);
     }
 
     // Update an existing user
-    public function update(Request $request, $id)
+    public function update(Request $request, User $user)
     {
-        $user = User::findOrFail($id);
-
         $validated = $request->validate([
-            'username' => 'required|string|max:255|unique:users,username,' . $id,
+            'username' => 'required|string|max:255|unique:users,username,' . $user->id,
             'full_name' => 'required|string|max:255',
             'avatar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
@@ -99,7 +103,7 @@ class UserController extends Controller
 
             $user->update($validated);
 
-            // Delete the old avatar only after the replacement succeeds
+            // Delete the old avatar only after replacement succeeds
             if ($oldAvatar) {
                 Storage::disk('public')->delete($oldAvatar);
             }
@@ -112,10 +116,8 @@ class UserController extends Controller
     }
 
     // Delete a user
-    public function destroy($id)
+    public function destroy(User $user)
     {
-        $user = User::findOrFail($id);
-
         if ($user->avatar) {
             Storage::disk('public')->delete($user->avatar);
         }
